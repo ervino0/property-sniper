@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import base64
-from st_aggrid import AgGrid, GridOptionsBuilder
+from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 from utils import (
     load_and_clean_data,
     find_expired_unlisted_properties,
@@ -91,13 +91,13 @@ def main():
                         step=50000
                     )
 
-                # Sliders for beds, baths, and days on market
-                col1, col2, col3 = st.columns(3)
-
                 # Get valid numeric values for sliders
                 valid_beds = sorted([int(x) for x in expired_unlisted['Bedrooms'].dropna().unique() if x > 0])
                 valid_baths = sorted([int(x) for x in expired_unlisted['Bathrooms'].dropna().unique() if x > 0])
                 valid_dom = sorted([int(x) for x in expired_unlisted['Days on Market'].dropna().unique() if x >= 0])
+
+                # Sliders for beds, baths, and days on market
+                col1, col2, col3 = st.columns(3)
 
                 with col1:
                     min_beds, max_beds = st.select_slider(
@@ -135,10 +135,21 @@ def main():
                 # Apply filters
                 filtered_df = apply_filters(display_df, expired_unlisted, filters)
 
+                # Custom cell renderer for MLS column
+                mls_renderer = JsCode("""
+                function(params) {
+                    if (params.data.Zealty_URL) {
+                        return `<a href="${params.data.Zealty_URL}" target="_blank">${params.value}</a>`;
+                    }
+                    return params.value;
+                }
+                """)
+
                 # Configure AgGrid
                 gb = GridOptionsBuilder.from_dataframe(filtered_df)
                 gb.configure_default_column(sortable=True, filterable=True)
-                gb.configure_column('MLS Link', sortable=False, cellRenderer='html')
+                gb.configure_column('MLS', cellRenderer=mls_renderer)
+                gb.configure_column('Zealty_URL', hide=True)
 
                 grid_options = gb.build()
 
