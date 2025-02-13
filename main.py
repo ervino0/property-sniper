@@ -31,45 +31,57 @@ document.addEventListener('DOMContentLoaded', function() {
     let sortDirections = {};
 
     headers.forEach((header, index) => {
-        if (index < 2) return; // Skip MLS Link and Address columns
+        if (index === 0) return; // Skip MLS Link column
 
         header.style.cursor = 'pointer';
-        sortDirections[index] = 'asc';
+        sortDirections[index] = 'none';
 
         header.addEventListener('click', () => {
             const rows = Array.from(table.querySelectorAll('tr')).slice(1);
-            const direction = sortDirections[index];
+
+            // Update sort direction
+            if (sortDirections[index] === 'none' || sortDirections[index] === 'desc') {
+                sortDirections[index] = 'asc';
+            } else {
+                sortDirections[index] = 'desc';
+            }
+
+            // Remove sort indicators from all headers
+            headers.forEach(h => {
+                h.classList.remove('sorted-asc', 'sorted-desc');
+                if (h !== header) {
+                    sortDirections[Array.from(headers).indexOf(h)] = 'none';
+                }
+            });
+
+            // Add sort indicator to current header
+            header.classList.add(
+                sortDirections[index] === 'asc' ? 'sorted-asc' : 'sorted-desc'
+            );
 
             rows.sort((a, b) => {
                 const aValue = a.cells[index].textContent.trim();
                 const bValue = b.cells[index].textContent.trim();
 
-                // Handle numeric values (including currency)
+                // Handle numeric values (including currency and formatted numbers)
                 const aNum = parseFloat(aValue.replace(/[^0-9.-]+/g, ''));
                 const bNum = parseFloat(bValue.replace(/[^0-9.-]+/g, ''));
 
                 if (!isNaN(aNum) && !isNaN(bNum)) {
-                    return direction === 'asc' 
+                    return sortDirections[index] === 'asc' 
                         ? aNum - bNum
                         : bNum - aNum;
                 }
 
                 // Handle text values
-                return direction === 'asc'
+                return sortDirections[index] === 'asc'
                     ? aValue.localeCompare(bValue)
                     : bValue.localeCompare(aValue);
             });
 
-            // Update sort direction for next click
-            sortDirections[index] = direction === 'asc' ? 'desc' : 'asc';
-
             // Remove old rows and append sorted rows
             rows.forEach(row => row.parentNode.removeChild(row));
             rows.forEach(row => table.appendChild(row));
-
-            // Update header indicators
-            headers.forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
-            header.classList.add(direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
         });
     });
 });

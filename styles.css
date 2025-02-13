@@ -42,22 +42,26 @@
     position: relative;
 }
 
-.dataframe th:not(:first-child):not(:nth-child(2)) {
+.dataframe th:not(:first-child) {
     cursor: pointer;
 }
 
-.dataframe th:not(:first-child):not(:nth-child(2)):hover {
+.dataframe th:not(:first-child):hover {
     background-color: #E2E8F0;
 }
 
 .dataframe th.sorted-asc::after {
-    content: " ↑";
+    content: " ▲";
     color: #2B6CB0;
+    font-size: 0.8em;
+    margin-left: 4px;
 }
 
 .dataframe th.sorted-desc::after {
-    content: " ↓";
+    content: " ▼";
     color: #2B6CB0;
+    font-size: 0.8em;
+    margin-left: 4px;
 }
 
 .dataframe td {
