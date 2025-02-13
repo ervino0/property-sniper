@@ -27,63 +27,53 @@
     background-color: #F7FAFC;
 }
 
-.dataframe {
+/* Table Styles */
+table {
     font-family: 'Inter', sans-serif;
     width: 100%;
     border-collapse: collapse;
+    margin: 1rem 0;
 }
 
-.dataframe th {
+th {
     background-color: #EDF2F7;
     padding: 0.75rem;
     text-align: left;
     font-weight: 600;
     border-bottom: 2px solid #CBD5E0;
-    position: relative;
-}
-
-.dataframe th:not(:first-child):not(:nth-child(2)) {
     cursor: pointer;
 }
 
-.dataframe th:not(:first-child):not(:nth-child(2)):hover {
+th:hover {
     background-color: #E2E8F0;
 }
 
-.dataframe th.sorted-asc::after {
-    content: " ↑";
-    color: #2B6CB0;
-}
-
-.dataframe th.sorted-desc::after {
-    content: " ↓";
-    color: #2B6CB0;
-}
-
-.dataframe td {
+td {
     padding: 0.75rem;
     border-bottom: 1px solid #E2E8F0;
 }
 
-.dataframe tr:hover {
+tr:hover {
     background-color: #F7FAFC;
 }
 
-/* Ensure table takes full width and shows all results */
+/* Link Styles */
+td a {
+    color: #2B6CB0;
+    text-decoration: none;
+}
+
+td a:hover {
+    text-decoration: underline;
+}
+
+/* Table Container */
+.table-container {
+    overflow-x: auto;
+    margin: 1rem 0;
+}
+
+/* Ensure table takes full width */
 div[data-testid="stTable"] {
-    font-family: 'Inter', sans-serif;
     width: 100%;
-    max-height: none !important;
-    overflow: visible !important;
-}
-
-/* Remove any height restrictions on table container */
-.element-container {
-    max-height: none !important;
-}
-
-/* Style the table wrapper to ensure all results are visible */
-.stTable {
-    overflow: visible !important;
-    max-height: none !important;
 }

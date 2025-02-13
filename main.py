@@ -134,31 +134,19 @@ def main():
                 # Apply filters
                 filtered_df = apply_filters(display_df, expired_unlisted, filters)
 
-                # Configure and display the table using Streamlit's native data editor
-                st.dataframe(
-                    filtered_df,
-                    column_config={
-                        "MLS": st.column_config.LinkColumn(
-                            "MLS Number",
-                            help="Click to view on Zealty",
-                            validate="^R[0-9]+$",
-                            max_chars=10,
-                            url="Zealty_URL"
-                        ),
-                        "Zealty_URL": None,  # Hide this column
-                        "List Price": st.column_config.NumberColumn(
-                            "List Price",
-                            help="Property list price",
-                            format="$%d"
-                        ),
-                        "Days on Market": st.column_config.NumberColumn(
-                            "Days on Market",
-                            help="Number of days the property was on market"
-                        )
-                    },
-                    hide_index=True,
-                    use_container_width=True
-                )
+                # Create clickable links in MLS column
+                def make_clickable(row):
+                    return f'<a href="{row["Zealty_URL"]}" target="_blank">{row["MLS"]}</a>'
+
+                # Create a display version of the dataframe with clickable links
+                display_df_with_links = filtered_df.copy()
+                display_df_with_links['MLS'] = filtered_df.apply(make_clickable, axis=1)
+
+                # Hide the URL column
+                display_df_with_links = display_df_with_links.drop('Zealty_URL', axis=1)
+
+                # Display the table
+                st.write(display_df_with_links.to_html(escape=False, index=False), unsafe_allow_html=True)
 
                 # Export functionality
                 if not filtered_df.empty:
