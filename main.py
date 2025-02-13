@@ -97,7 +97,16 @@ def main():
                 st.dataframe(
                     filtered_df,
                     use_container_width=True,
-                    height=400
+                    height=400,
+                    hide_index=True,
+                    column_config={
+                        "MLS": st.column_config.Column(
+                            "MLS",
+                            width="medium",
+                            help="Click MLS number to view on Zealty.ca",
+                            unsafe_allow_html=True
+                        )
+                    }
                 )
                 
                 # Export functionality
