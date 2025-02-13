@@ -159,13 +159,10 @@ def main():
                     gb = GridOptionsBuilder.from_dataframe(filtered_df)
                     gb.configure_default_column(sorteable=True, filterable=True)
 
-                    # Configure HTML renderer for MLS Link column with proper HTML rendering
+                    # Configure HTML renderer for MLS Link column
                     html_renderer = JsCode("""
                     function(params) {
-                        var link = params.value;
-                        var el = document.createElement('div');
-                        el.innerHTML = link;
-                        return el.querySelector('a');
+                        return params.value;
                     }
                     """)
 
@@ -174,11 +171,12 @@ def main():
                         cellRenderer=html_renderer,
                         sortable=True,
                         filter=True,
-                        html=True  # Enable HTML rendering for this column
+                        cellStyle={'white-space': 'normal'},
+                        autoHeight=True,
+                        wrapText=True
                     )
 
                     grid_options = gb.build()
-                    grid_options['enableHtmlRendering'] = True  # Enable HTML rendering globally
 
                     AgGrid(
                         filtered_df,
