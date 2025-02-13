@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import base64
-from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 from utils import (
     load_and_clean_data,
     find_expired_unlisted_properties,
@@ -20,6 +19,75 @@ st.set_page_config(
 # Load custom CSS
 with open('styles.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+# Update the JavaScript section
+st.markdown("""
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tables = document.getElementsByTagName('table');
+    Array.from(tables).forEach(table => {
+        if (!table) return;
+
+        const headers = table.querySelectorAll('th');
+        const sortStates = new Array(headers.length).fill(null);
+
+        headers.forEach((header, index) => {
+            if (index === 0) return; // Skip MLS Link column
+
+            header.style.cursor = 'pointer';
+            header.addEventListener('click', () => {
+                // Toggle sort state: null -> asc -> desc -> null
+                if (sortStates[index] === null) {
+                    sortStates[index] = 'asc';
+                } else if (sortStates[index] === 'asc') {
+                    sortStates[index] = 'desc';
+                } else {
+                    sortStates[index] = null;
+                }
+
+                // Reset other columns
+                sortStates.forEach((state, i) => {
+                    if (i !== index) sortStates[i] = null;
+                });
+
+                const rows = Array.from(table.querySelectorAll('tr:not(:first-child)'));
+
+                if (sortStates[index] !== null) {
+                    rows.sort((rowA, rowB) => {
+                        const cellA = rowA.cells[index].textContent.trim();
+                        const cellB = rowB.cells[index].textContent.trim();
+
+                        // Parse numbers (including currency)
+                        const numA = parseFloat(cellA.replace(/[^0-9.-]+/g, ''));
+                        const numB = parseFloat(cellB.replace(/[^0-9.-]+/g, ''));
+
+                        if (!isNaN(numA) && !isNaN(numB)) {
+                            return sortStates[index] === 'asc' ? numA - numB : numB - numA;
+                        }
+
+                        return sortStates[index] === 'asc' 
+                            ? cellA.localeCompare(cellB)
+                            : cellB.localeCompare(cellA);
+                    });
+                }
+
+                // Update header styles
+                headers.forEach((h, i) => {
+                    h.classList.remove('sorted-asc', 'sorted-desc');
+                    if (i === index && sortStates[i] !== null) {
+                        h.classList.add(`sorted-${sortStates[i]}`);
+                    }
+                });
+
+                // Reorder rows
+                const tbody = table.querySelector('tbody') || table;
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        });
+    });
+});
+</script>
+""", unsafe_allow_html=True)
 
 def main():
     st.title("Real Estate Listing Analysis")
@@ -87,7 +155,7 @@ def main():
                 with col2:
                     max_price = st.number_input(
                         "Maximum Price",
-                        value=int(expired_unlisted['List Price'].fillna(0).max()),
+                        value=int(expired_unlisted['List Price'].max()),
                         step=50000
                     )
 
@@ -104,37 +172,28 @@ def main():
                 col1, col2, col3 = st.columns(3)
 
                 with col1:
-                    valid_beds = sorted([int(x) for x in expired_unlisted['Bedrooms'].dropna().unique() if pd.notna(x) and x > 0])
-                    if valid_beds:
-                        min_beds, max_beds = st.select_slider(
-                            "Bedrooms Range",
-                            options=valid_beds,
-                            value=(min(valid_beds), max(valid_beds))
-                        )
-                    else:
-                        min_beds, max_beds = 0, 0
+                    valid_beds = sorted([int(x) for x in expired_unlisted['Bedrooms'].dropna().unique() if x > 0])
+                    min_beds, max_beds = st.select_slider(
+                        "Bedrooms Range",
+                        options=valid_beds,
+                        value=(min(valid_beds) if valid_beds else 0, max(valid_beds) if valid_beds else 0)
+                    )
 
                 with col2:
-                    valid_baths = sorted([int(x) for x in expired_unlisted['Bathrooms'].dropna().unique() if pd.notna(x) and x > 0])
-                    if valid_baths:
-                        min_baths, max_baths = st.select_slider(
-                            "Bathrooms Range",
-                            options=valid_baths,
-                            value=(min(valid_baths), max(valid_baths))
-                        )
-                    else:
-                        min_baths, max_baths = 0, 0
+                    valid_baths = sorted([int(x) for x in expired_unlisted['Bathrooms'].dropna().unique() if x > 0])
+                    min_baths, max_baths = st.select_slider(
+                        "Bathrooms Range",
+                        options=valid_baths,
+                        value=(min(valid_baths) if valid_baths else 0, max(valid_baths) if valid_baths else 0)
+                    )
 
                 with col3:
-                    valid_dom = sorted([int(x) for x in expired_unlisted['Days on Market'].dropna().unique() if pd.notna(x) and x >= 0])
-                    if valid_dom:
-                        min_dom, max_dom = st.select_slider(
-                            "Days on Market Range",
-                            options=valid_dom,
-                            value=(min(valid_dom), max(valid_dom))
-                        )
-                    else:
-                        min_dom, max_dom = 0, 0
+                    valid_dom = sorted([int(x) for x in expired_unlisted['Days on Market'].dropna().unique() if x >= 0])
+                    min_dom, max_dom = st.select_slider(
+                        "Days on Market Range",
+                        options=valid_dom,
+                        value=(min(valid_dom) if valid_dom else 0, max(valid_dom) if valid_dom else 0)
+                    )
 
                 # Create filters dictionary
                 filters = {
@@ -154,40 +213,11 @@ def main():
                 # Apply filters
                 filtered_df = apply_filters(display_df, expired_unlisted, filters)
 
-                # Display results using AgGrid
+                # Display results
                 if not filtered_df.empty:
-                    gb = GridOptionsBuilder.from_dataframe(filtered_df)
-                    gb.configure_default_column(sorteable=True, filterable=True)
-
-                    # Configure HTML renderer for MLS Link column
-                    html_renderer = JsCode("""
-                    function(params) {
-                        const safeHtml = params.value || '';
-                        return safeHtml;
-                    }
-                    """)
-
-                    gb.configure_column(
-                        'MLS Link',
-                        cellRenderer=html_renderer,
-                        sortable=True,
-                        filter=True,
-                        cellStyle={'white-space': 'normal'},
-                        autoHeight=True,
-                        wrapText=True
-                    )
-
-                    grid_options = gb.build()
-
-                    AgGrid(
-                        filtered_df,
-                        gridOptions=grid_options,
-                        allow_unsafe_jscode=True,
-                        fit_columns_on_grid_load=True,
-                        theme='streamlit',
-                        enable_enterprise_modules=False,
-                        update_mode='model_changed',
-                        reload_data=True
+                    st.write(
+                        filtered_df.to_html(escape=False, index=False),
+                        unsafe_allow_html=True
                     )
 
                     # Export functionality

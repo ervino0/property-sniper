@@ -8,20 +8,9 @@ def load_and_clean_data(file):
         # Clean address column by removing extra whitespace and standardizing format
         df['Address'] = df['Address'].str.strip()
 
-        # Format Year Built as integer, handling NaN values
+        # Format Year Built as integer
         if 'Year Built' in df.columns:
-            df['Year Built'] = pd.to_numeric(df['Year Built'], errors='coerce')
-            df['Year Built'] = df['Year Built'].fillna(0).astype('Int64')  # Use Int64 to handle NaN
-
-        # Convert numeric columns, handling NaN values
-        numeric_columns = ['List Price', 'House Size (sqft)', 'Lot Size (sqft)', 
-                         'Bedrooms', 'Bathrooms', 'Days on Market']
-
-        for col in numeric_columns:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='coerce')
-                if col in ['Bedrooms', 'Bathrooms', 'Days on Market']:
-                    df[col] = df[col].fillna(0).astype('Int64')
+            df['Year Built'] = df['Year Built'].fillna(0).astype(int)
 
         return df
     except Exception as e:
@@ -45,8 +34,8 @@ def generate_zealty_link(row):
         # Create URL
         url = f"https://www.zealty.ca/mls-{row['MLS']}/{street_num}-{street_name}-{city}-{province}/"
 
-        # Create simple HTML link
-        return f'<a href="{url}" style="color: #2B6CB0; text-decoration: underline;" target="_blank">{row["MLS"]}</a>'
+        # Create HTML link with data attributes for filtering
+        return f'<a href="{url}" target="_blank" data-mls="{row["MLS"]}">{row["MLS"]}</a>'
     except Exception:
         return row['MLS']  # Return just the MLS number if link creation fails
 
@@ -80,10 +69,10 @@ def prepare_display_data(df):
     existing_columns = [col for col in display_columns if col in df.columns]
     display_df = df[existing_columns].copy()
 
-    # Format currency for non-null values
+    # Format currency
     if 'List Price' in display_df.columns:
         display_df['List Price'] = display_df['List Price'].apply(
-            lambda x: '${:,.0f}'.format(x) if pd.notnull(x) else ''
+            lambda x: f"${x:,.0f}" if pd.notnull(x) else ''
         )
 
     return display_df
@@ -93,21 +82,21 @@ def apply_filters(df, raw_df, filters):
     mask = pd.Series(True, index=df.index)
 
     if filters.get('min_price'):
-        mask &= (raw_df['List Price'].fillna(0) >= filters['min_price'])
+        mask &= (raw_df['List Price'] >= filters['min_price'])
     if filters.get('max_price'):
-        mask &= (raw_df['List Price'].fillna(0) <= filters['max_price'])
+        mask &= (raw_df['List Price'] <= filters['max_price'])
     if filters.get('min_beds'):
-        mask &= (raw_df['Bedrooms'].fillna(0) >= filters['min_beds'])
+        mask &= (raw_df['Bedrooms'] >= filters['min_beds'])
     if filters.get('max_beds'):
-        mask &= (raw_df['Bedrooms'].fillna(0) <= filters['max_beds'])
+        mask &= (raw_df['Bedrooms'] <= filters['max_beds'])
     if filters.get('min_baths'):
-        mask &= (raw_df['Bathrooms'].fillna(0) >= filters['min_baths'])
+        mask &= (raw_df['Bathrooms'] >= filters['min_baths'])
     if filters.get('max_baths'):
-        mask &= (raw_df['Bathrooms'].fillna(0) <= filters['max_baths'])
+        mask &= (raw_df['Bathrooms'] <= filters['max_baths'])
     if filters.get('min_dom'):
-        mask &= (raw_df['Days on Market'].fillna(0) >= filters['min_dom'])
+        mask &= (raw_df['Days on Market'] >= filters['min_dom'])
     if filters.get('max_dom'):
-        mask &= (raw_df['Days on Market'].fillna(0) <= filters['max_dom'])
+        mask &= (raw_df['Days on Market'] <= filters['max_dom'])
 
     # Add property type filter
     if filters.get('property_types') and 'Property Type' in raw_df.columns:
