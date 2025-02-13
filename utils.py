@@ -7,6 +7,11 @@ def load_and_clean_data(file):
         df = pd.read_csv(file)
         # Clean address column by removing extra whitespace and standardizing format
         df['Address'] = df['Address'].str.strip()
+
+        # Format Year Built as integer
+        if 'Year Built' in df.columns:
+            df['Year Built'] = df['Year Built'].fillna(0).astype(int)
+
         return df
     except Exception as e:
         raise Exception(f"Error loading CSV file: {str(e)}")
@@ -57,7 +62,7 @@ def prepare_display_data(df):
 
     display_columns = [
         'MLS Link', 'Address', 'Bedrooms', 'Bathrooms', 'House Size (sqft)', 
-        'List Price', 'Days on Market', 'Year Built'
+        'List Price', 'Days on Market', 'Year Built', 'Listing Cancel Date'
     ]
 
     display_df = df[display_columns].copy()
@@ -68,6 +73,29 @@ def prepare_display_data(df):
     )
 
     return display_df
+
+def apply_filters(df, raw_df, filters):
+    """Apply filters to the dataframe."""
+    mask = pd.Series(True, index=df.index)
+
+    if filters.get('min_price'):
+        mask &= (raw_df['List Price'] >= filters['min_price'])
+    if filters.get('max_price'):
+        mask &= (raw_df['List Price'] <= filters['max_price'])
+    if filters.get('min_beds'):
+        mask &= (raw_df['Bedrooms'] >= filters['min_beds'])
+    if filters.get('max_beds'):
+        mask &= (raw_df['Bedrooms'] <= filters['max_beds'])
+    if filters.get('min_baths'):
+        mask &= (raw_df['Bathrooms'] >= filters['min_baths'])
+    if filters.get('max_baths'):
+        mask &= (raw_df['Bathrooms'] <= filters['max_baths'])
+    if filters.get('min_dom'):
+        mask &= (raw_df['Days on Market'] >= filters['min_dom'])
+    if filters.get('max_dom'):
+        mask &= (raw_df['Days on Market'] <= filters['max_dom'])
+
+    return df[mask]
 
 def export_to_csv(df):
     """Prepare dataframe for CSV export."""

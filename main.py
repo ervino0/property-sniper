@@ -5,7 +5,8 @@ from utils import (
     load_and_clean_data,
     find_expired_unlisted_properties,
     prepare_display_data,
-    export_to_csv
+    export_to_csv,
+    apply_filters
 )
 
 # Page configuration
@@ -73,6 +74,8 @@ def main():
 
                 # Add filters
                 st.markdown("### Filters")
+
+                # Price filters
                 col1, col2 = st.columns(2)
                 with col1:
                     min_price = st.number_input(
@@ -87,11 +90,71 @@ def main():
                         step=50000
                     )
 
+                # Bedroom filters
+                col1, col2 = st.columns(2)
+                with col1:
+                    min_beds = st.number_input(
+                        "Minimum Bedrooms",
+                        value=0,
+                        min_value=0,
+                        step=1
+                    )
+                with col2:
+                    max_beds = st.number_input(
+                        "Maximum Bedrooms",
+                        value=int(expired_unlisted['Bedrooms'].max()),
+                        min_value=0,
+                        step=1
+                    )
+
+                # Bathroom filters
+                col1, col2 = st.columns(2)
+                with col1:
+                    min_baths = st.number_input(
+                        "Minimum Bathrooms",
+                        value=0,
+                        min_value=0,
+                        step=1
+                    )
+                with col2:
+                    max_baths = st.number_input(
+                        "Maximum Bathrooms",
+                        value=int(expired_unlisted['Bathrooms'].max()),
+                        min_value=0,
+                        step=1
+                    )
+
+                # Days on Market filters
+                col1, col2 = st.columns(2)
+                with col1:
+                    min_dom = st.number_input(
+                        "Minimum Days on Market",
+                        value=0,
+                        min_value=0,
+                        step=1
+                    )
+                with col2:
+                    max_dom = st.number_input(
+                        "Maximum Days on Market",
+                        value=int(expired_unlisted['Days on Market'].max()),
+                        min_value=0,
+                        step=1
+                    )
+
+                # Create filters dictionary
+                filters = {
+                    'min_price': min_price,
+                    'max_price': max_price,
+                    'min_beds': min_beds,
+                    'max_beds': max_beds,
+                    'min_baths': min_baths,
+                    'max_baths': max_baths,
+                    'min_dom': min_dom,
+                    'max_dom': max_dom
+                }
+
                 # Apply filters
-                filtered_df = display_df[
-                    (expired_unlisted['List Price'] >= min_price) &
-                    (expired_unlisted['List Price'] <= max_price)
-                ]
+                filtered_df = apply_filters(display_df, expired_unlisted, filters)
 
                 # Display results with HTML support
                 st.write(
