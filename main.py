@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import base64
-from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 from utils import (
     load_and_clean_data,
     find_expired_unlisted_properties,
@@ -135,32 +134,30 @@ def main():
                 # Apply filters
                 filtered_df = apply_filters(display_df, expired_unlisted, filters)
 
-                # Custom cell renderer for MLS column
-                mls_renderer = JsCode("""
-                function(params) {
-                    if (params.data.Zealty_URL) {
-                        return `<a href="${params.data.Zealty_URL}" target="_blank">${params.value}</a>`;
-                    }
-                    return params.value;
-                }
-                """)
-
-                # Configure AgGrid
-                gb = GridOptionsBuilder.from_dataframe(filtered_df)
-                gb.configure_default_column(sortable=True, filterable=True)
-                gb.configure_column('MLS', cellRenderer=mls_renderer)
-                gb.configure_column('Zealty_URL', hide=True)
-
-                grid_options = gb.build()
-
-                # Display results with AgGrid
-                ag_grid = AgGrid(
+                # Configure and display the table using Streamlit's native data editor
+                st.dataframe(
                     filtered_df,
-                    gridOptions=grid_options,
-                    allow_unsafe_jscode=True,
-                    theme='streamlit',
-                    fit_columns_on_grid_load=True,
-                    height=400
+                    column_config={
+                        "MLS": st.column_config.LinkColumn(
+                            "MLS Number",
+                            help="Click to view on Zealty",
+                            validate="^R[0-9]+$",
+                            max_chars=10,
+                            url="Zealty_URL"
+                        ),
+                        "Zealty_URL": None,  # Hide this column
+                        "List Price": st.column_config.NumberColumn(
+                            "List Price",
+                            help="Property list price",
+                            format="$%d"
+                        ),
+                        "Days on Market": st.column_config.NumberColumn(
+                            "Days on Market",
+                            help="Number of days the property was on market"
+                        )
+                    },
+                    hide_index=True,
+                    use_container_width=True
                 )
 
                 # Export functionality
