@@ -105,10 +105,15 @@ def main():
                     use_container_width=True,
                     hide_index=True,
                     column_config={
-                        "MLS Link": st.column_config.Column(
+                        "MLS": st.column_config.LinkColumn(
                             "MLS",
                             help="Click to view on Zealty",
-                            width="medium"
+                            width="medium",
+                            url="Zealty URL"
+                        ),
+                        "Zealty URL": st.column_config.Column(
+                            "Zealty URL",
+                            hidden=True
                         ),
                         "Bedrooms": st.column_config.NumberColumn(
                             "Beds",
