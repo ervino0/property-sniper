@@ -34,8 +34,8 @@ def generate_zealty_link(row):
         # Create URL
         url = f"https://www.zealty.ca/mls-{row['MLS']}/{street_num}-{street_name}-{city}-{province}/"
 
-        # Create HTML link
-        return f'<a href="{url}" target="_blank">{row["MLS"]}</a>'
+        # Create HTML link with data attributes for filtering
+        return f'<a href="{url}" target="_blank" data-mls="{row["MLS"]}">{row["MLS"]}</a>'
     except Exception:
         return row['MLS']  # Return just the MLS number if link creation fails
 
@@ -82,18 +82,12 @@ def apply_filters(df, raw_df, filters):
         mask &= (raw_df['List Price'] >= filters['min_price'])
     if filters.get('max_price'):
         mask &= (raw_df['List Price'] <= filters['max_price'])
-    if filters.get('min_beds'):
-        mask &= (raw_df['Bedrooms'] >= filters['min_beds'])
-    if filters.get('max_beds'):
-        mask &= (raw_df['Bedrooms'] <= filters['max_beds'])
-    if filters.get('min_baths'):
-        mask &= (raw_df['Bathrooms'] >= filters['min_baths'])
-    if filters.get('max_baths'):
-        mask &= (raw_df['Bathrooms'] <= filters['max_baths'])
-    if filters.get('min_dom'):
-        mask &= (raw_df['Days on Market'] >= filters['min_dom'])
-    if filters.get('max_dom'):
-        mask &= (raw_df['Days on Market'] <= filters['max_dom'])
+    if filters.get('beds'):
+        mask &= (raw_df['Bedrooms'] == filters['beds'])
+    if filters.get('baths'):
+        mask &= (raw_df['Bathrooms'] == filters['baths'])
+    if filters.get('dom'):
+        mask &= (raw_df['Days on Market'] <= filters['dom'])
 
     return df[mask]
 

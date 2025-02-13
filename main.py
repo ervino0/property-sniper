@@ -20,6 +20,35 @@ st.set_page_config(
 with open('styles.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
+# Add custom JavaScript for column filtering
+st.markdown("""
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.querySelector('table');
+    if (!table) return;
+
+    const headers = table.querySelectorAll('th');
+    headers.forEach((header, index) => {
+        if (index < 2) return; // Skip MLS Link and Address columns
+
+        header.style.cursor = 'pointer';
+        header.addEventListener('click', () => {
+            const rows = Array.from(table.querySelectorAll('tr')).slice(1);
+            const values = new Set();
+
+            rows.forEach(row => {
+                const cell = row.cells[index];
+                if (cell) values.add(cell.textContent.trim());
+            });
+
+            const uniqueValues = Array.from(values).sort();
+            console.log(`Unique values for ${header.textContent}:`, uniqueValues);
+        });
+    });
+});
+</script>
+""", unsafe_allow_html=True)
+
 def main():
     st.title("Real Estate Listing Analysis")
     st.markdown("""
@@ -75,7 +104,7 @@ def main():
                 # Add filters
                 st.markdown("### Filters")
 
-                # Price filters
+                # Price filters (keep as number inputs)
                 col1, col2 = st.columns(2)
                 with col1:
                     min_price = st.number_input(
@@ -90,67 +119,40 @@ def main():
                         step=50000
                     )
 
-                # Bedroom filters
-                col1, col2 = st.columns(2)
+                # Sliders for beds, baths, and days on market
+                col1, col2, col3 = st.columns(3)
+
                 with col1:
-                    min_beds = st.number_input(
-                        "Minimum Bedrooms",
-                        value=0,
-                        min_value=0,
-                        step=1
-                    )
-                with col2:
-                    max_beds = st.number_input(
-                        "Maximum Bedrooms",
-                        value=int(expired_unlisted['Bedrooms'].max()),
-                        min_value=0,
-                        step=1
+                    beds = st.slider(
+                        "Bedrooms",
+                        min_value=int(expired_unlisted['Bedrooms'].min()),
+                        max_value=int(expired_unlisted['Bedrooms'].max()),
+                        value=int(expired_unlisted['Bedrooms'].median())
                     )
 
-                # Bathroom filters
-                col1, col2 = st.columns(2)
-                with col1:
-                    min_baths = st.number_input(
-                        "Minimum Bathrooms",
-                        value=0,
-                        min_value=0,
-                        step=1
-                    )
                 with col2:
-                    max_baths = st.number_input(
-                        "Maximum Bathrooms",
-                        value=int(expired_unlisted['Bathrooms'].max()),
-                        min_value=0,
-                        step=1
+                    baths = st.slider(
+                        "Bathrooms",
+                        min_value=int(expired_unlisted['Bathrooms'].min()),
+                        max_value=int(expired_unlisted['Bathrooms'].max()),
+                        value=int(expired_unlisted['Bathrooms'].median())
                     )
 
-                # Days on Market filters
-                col1, col2 = st.columns(2)
-                with col1:
-                    min_dom = st.number_input(
-                        "Minimum Days on Market",
-                        value=0,
+                with col3:
+                    dom = st.slider(
+                        "Days on Market",
                         min_value=0,
-                        step=1
-                    )
-                with col2:
-                    max_dom = st.number_input(
-                        "Maximum Days on Market",
-                        value=int(expired_unlisted['Days on Market'].max()),
-                        min_value=0,
-                        step=1
+                        max_value=int(expired_unlisted['Days on Market'].max()),
+                        value=int(expired_unlisted['Days on Market'].median())
                     )
 
                 # Create filters dictionary
                 filters = {
                     'min_price': min_price,
                     'max_price': max_price,
-                    'min_beds': min_beds,
-                    'max_beds': max_beds,
-                    'min_baths': min_baths,
-                    'max_baths': max_baths,
-                    'min_dom': min_dom,
-                    'max_dom': max_dom
+                    'beds': beds,
+                    'baths': baths,
+                    'dom': dom
                 }
 
                 # Apply filters
