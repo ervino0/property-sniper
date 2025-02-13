@@ -36,9 +36,10 @@ def create_grid_options(df):
         sortable=False,
         cellRenderer=JsCode("""
         function(params) {
-            var div = document.createElement('div');
-            div.innerHTML = params.value;
-            return div.firstChild;
+            if (params.value) {
+                return params.value;
+            }
+            return '';
         }
         """)
     )
