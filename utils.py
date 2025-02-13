@@ -71,8 +71,9 @@ def prepare_display_data(df):
 
     # Format currency
     if 'List Price' in display_df.columns:
+        # Fix: Use string formatting without f-string
         display_df['List Price'] = display_df['List Price'].apply(
-            lambda x: f"${x:,.0f}" if pd.notnull(x) else ''
+            lambda x: '${:,.0f}'.format(x) if pd.notnull(x) else ''
         )
 
     return display_df
