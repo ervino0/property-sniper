@@ -1,0 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto:wght@400;500;700&display=swap');
+
+.stButton > button {
+    background-color: #2B6CB0;
+    color: white;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    border: none;
+}
+
+.stButton > button:hover {
+    background-color: #2C5282;
+}
+
+.success-message {
+    background-color: #48BB78;
+    padding: 1rem;
+    border-radius: 4px;
+    color: white;
+}
+
+.upload-area {
+    border: 2px dashed #CBD5E0;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    background-color: #F7FAFC;
+}
+
+.dataframe {
+    font-family: 'Inter', sans-serif;
+}
+
+div[data-testid="stTable"] {
+    font-family: 'Inter', sans-serif;
+}
