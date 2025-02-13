@@ -162,18 +162,8 @@ def main():
                     # Configure HTML renderer for MLS Link column
                     html_renderer = JsCode("""
                     function(params) {
-                        const div = document.createElement('div');
-                        div.innerHTML = params.value;
-                        div.style.cursor = 'pointer';
-
-                        const link = div.querySelector('a');
-                        if (link) {
-                            div.onclick = function() {
-                                window.open(link.href, '_blank');
-                            };
-                        }
-
-                        return div;
+                        const safeHtml = params.value || '';
+                        return safeHtml;
                     }
                     """)
 

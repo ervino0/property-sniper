@@ -45,8 +45,8 @@ def generate_zealty_link(row):
         # Create URL
         url = f"https://www.zealty.ca/mls-{row['MLS']}/{street_num}-{street_name}-{city}-{province}/"
 
-        # Create HTML link with data attributes for filtering
-        return f'<a href="{url}" target="_blank" data-mls="{row["MLS"]}">{row["MLS"]}</a>'
+        # Create simple HTML link
+        return f'<a href="{url}" style="color: #2B6CB0; text-decoration: underline;" target="_blank">{row["MLS"]}</a>'
     except Exception:
         return row['MLS']  # Return just the MLS number if link creation fails
 
