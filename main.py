@@ -23,9 +23,13 @@ with open('styles.css') as f:
 # Add custom JavaScript for column sorting
 st.markdown("""
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+function initializeTableSorting() {
     const table = document.querySelector('table');
-    if (!table) return;
+    if (!table) {
+        // If table is not ready, try again in 100ms
+        setTimeout(initializeTableSorting, 100);
+        return;
+    }
 
     const headers = table.querySelectorAll('th');
     let sortDirections = {};
@@ -64,15 +68,23 @@ document.addEventListener('DOMContentLoaded', function() {
             sortDirections[index] = direction === 'asc' ? 'desc' : 'asc';
 
             // Remove old rows and append sorted rows
-            rows.forEach(row => row.parentNode.removeChild(row));
-            rows.forEach(row => table.appendChild(row));
+            const tbody = table.querySelector('tbody') || table;
+            rows.forEach(row => tbody.appendChild(row));
 
             // Update header indicators
             headers.forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
             header.classList.add(direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
         });
     });
-});
+}
+
+// Initialize sorting when DOM is ready
+document.addEventListener('DOMContentLoaded', initializeTableSorting);
+
+// Also try to initialize when Streamlit re-renders
+new MutationObserver(() => {
+    initializeTableSorting();
+}).observe(document.body, { childList: true, subtree: true });
 </script>
 """, unsafe_allow_html=True)
 
