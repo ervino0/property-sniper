@@ -29,9 +29,10 @@ def generate_zealty_link(row):
         # Create URL
         url = f"https://www.zealty.ca/mls-{row['MLS']}/{street_num}-{street_name}-{city}-{province}/"
 
-        return {'display_value': row['MLS'], 'url': url}
+        # Create HTML link
+        return f'<a href="{url}" target="_blank">{row["MLS"]}</a>'
     except Exception:
-        return {'display_value': row['MLS'], 'url': ''}
+        return row['MLS']  # Return just the MLS number if link creation fails
 
 def find_expired_unlisted_properties(off_market_df, sold_df, for_sale_df):
     """
@@ -52,12 +53,10 @@ def find_expired_unlisted_properties(off_market_df, sold_df, for_sale_df):
 def prepare_display_data(df):
     """Prepare data for display by selecting and formatting relevant columns."""
     # Generate Zealty links for MLS numbers
-    links = df.apply(generate_zealty_link, axis=1)
-    df['MLS'] = links.apply(lambda x: x['display_value'])
-    df['Zealty URL'] = links.apply(lambda x: x['url'])
+    df['MLS Link'] = df.apply(generate_zealty_link, axis=1)
 
     display_columns = [
-        'MLS', 'Zealty URL', 'Address', 'Bedrooms', 'Bathrooms', 'House Size (sqft)', 
+        'MLS Link', 'Address', 'Bedrooms', 'Bathrooms', 'House Size (sqft)', 
         'List Price', 'Days on Market', 'Year Built'
     ]
 
@@ -72,7 +71,9 @@ def prepare_display_data(df):
 
 def export_to_csv(df):
     """Prepare dataframe for CSV export."""
+    # Remove HTML formatting from MLS Link column for CSV export
     export_df = df.copy()
-    if 'Zealty URL' in export_df.columns:
-        export_df = export_df.drop('Zealty URL', axis=1)
+    if 'MLS Link' in export_df.columns:
+        export_df['MLS'] = export_df['MLS Link'].str.extract(r'>([^<]+)</a>')
+        export_df = export_df.drop('MLS Link', axis=1)
     return export_df.to_csv(index=False)

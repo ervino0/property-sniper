@@ -93,49 +93,10 @@ def main():
                     (expired_unlisted['List Price'] <= max_price)
                 ]
 
-                # Convert string columns to numeric for proper sorting
-                filtered_df['Bedrooms'] = pd.to_numeric(filtered_df['Bedrooms'], errors='coerce')
-                filtered_df['Bathrooms'] = pd.to_numeric(filtered_df['Bathrooms'], errors='coerce')
-                filtered_df['House Size (sqft)'] = pd.to_numeric(filtered_df['House Size (sqft)'], errors='coerce')
-                filtered_df['Days on Market'] = pd.to_numeric(filtered_df['Days on Market'], errors='coerce')
-
-                # Display results with sorting capability
-                st.dataframe(
-                    filtered_df,
-                    use_container_width=True,
-                    hide_index=True,
-                    column_config={
-                        "MLS": st.column_config.LinkColumn(
-                            "MLS",
-                            help="Click to view on Zealty",
-                            width="medium",
-                            url="Zealty URL"
-                        ),
-                        "Zealty URL": st.column_config.Column(
-                            "Zealty URL",
-                            hidden=True
-                        ),
-                        "Bedrooms": st.column_config.NumberColumn(
-                            "Beds",
-                            help="Number of bedrooms",
-                            format="%d"
-                        ),
-                        "Bathrooms": st.column_config.NumberColumn(
-                            "Baths",
-                            help="Number of bathrooms",
-                            format="%d"
-                        ),
-                        "House Size (sqft)": st.column_config.NumberColumn(
-                            "Size (sqft)",
-                            help="House size in square feet",
-                            format="%d"
-                        ),
-                        "Days on Market": st.column_config.NumberColumn(
-                            "DOM",
-                            help="Days on Market",
-                            format="%d"
-                        )
-                    }
+                # Display results with HTML support
+                st.write(
+                    filtered_df.to_html(escape=False, index=False),
+                    unsafe_allow_html=True
                 )
 
                 # Export functionality
