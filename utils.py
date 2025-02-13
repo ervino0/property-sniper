@@ -82,12 +82,18 @@ def apply_filters(df, raw_df, filters):
         mask &= (raw_df['List Price'] >= filters['min_price'])
     if filters.get('max_price'):
         mask &= (raw_df['List Price'] <= filters['max_price'])
-    if filters.get('beds'):
-        mask &= (raw_df['Bedrooms'] == filters['beds'])
-    if filters.get('baths'):
-        mask &= (raw_df['Bathrooms'] == filters['baths'])
-    if filters.get('dom'):
-        mask &= (raw_df['Days on Market'] <= filters['dom'])
+    if filters.get('min_beds'):
+        mask &= (raw_df['Bedrooms'] >= filters['min_beds'])
+    if filters.get('max_beds'):
+        mask &= (raw_df['Bedrooms'] <= filters['max_beds'])
+    if filters.get('min_baths'):
+        mask &= (raw_df['Bathrooms'] >= filters['min_baths'])
+    if filters.get('max_baths'):
+        mask &= (raw_df['Bathrooms'] <= filters['max_baths'])
+    if filters.get('min_dom'):
+        mask &= (raw_df['Days on Market'] >= filters['min_dom'])
+    if filters.get('max_dom'):
+        mask &= (raw_df['Days on Market'] <= filters['max_dom'])
 
     return df[mask]
 

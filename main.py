@@ -44,11 +44,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const aValue = a.cells[index].textContent.trim();
                 const bValue = b.cells[index].textContent.trim();
 
-                // Handle numeric values
-                if (!isNaN(aValue) && !isNaN(bValue)) {
+                // Handle numeric values (including currency)
+                const aNum = parseFloat(aValue.replace(/[^0-9.-]+/g, ''));
+                const bNum = parseFloat(bValue.replace(/[^0-9.-]+/g, ''));
+
+                if (!isNaN(aNum) && !isNaN(bNum)) {
                     return direction === 'asc' 
-                        ? parseFloat(aValue) - parseFloat(bValue)
-                        : parseFloat(bValue) - parseFloat(aValue);
+                        ? aNum - bNum
+                        : bNum - aNum;
                 }
 
                 // Handle text values
@@ -147,36 +150,45 @@ def main():
                 col1, col2, col3 = st.columns(3)
 
                 with col1:
-                    beds = st.slider(
-                        "Bedrooms",
-                        min_value=int(expired_unlisted['Bedrooms'].min()),
-                        max_value=int(expired_unlisted['Bedrooms'].max()),
-                        value=int(expired_unlisted['Bedrooms'].median())
+                    min_beds, max_beds = st.select_slider(
+                        "Bedrooms Range",
+                        options=sorted(expired_unlisted['Bedrooms'].unique()),
+                        value=(
+                            int(expired_unlisted['Bedrooms'].min()),
+                            int(expired_unlisted['Bedrooms'].max())
+                        )
                     )
 
                 with col2:
-                    baths = st.slider(
-                        "Bathrooms",
-                        min_value=int(expired_unlisted['Bathrooms'].min()),
-                        max_value=int(expired_unlisted['Bathrooms'].max()),
-                        value=int(expired_unlisted['Bathrooms'].median())
+                    min_baths, max_baths = st.select_slider(
+                        "Bathrooms Range",
+                        options=sorted(expired_unlisted['Bathrooms'].unique()),
+                        value=(
+                            int(expired_unlisted['Bathrooms'].min()),
+                            int(expired_unlisted['Bathrooms'].max())
+                        )
                     )
 
                 with col3:
-                    dom = st.slider(
-                        "Days on Market",
-                        min_value=0,
-                        max_value=int(expired_unlisted['Days on Market'].max()),
-                        value=int(expired_unlisted['Days on Market'].median())
+                    min_dom, max_dom = st.select_slider(
+                        "Days on Market Range",
+                        options=sorted(expired_unlisted['Days on Market'].unique()),
+                        value=(
+                            0,
+                            int(expired_unlisted['Days on Market'].max())
+                        )
                     )
 
                 # Create filters dictionary
                 filters = {
                     'min_price': min_price,
                     'max_price': max_price,
-                    'beds': beds,
-                    'baths': baths,
-                    'dom': dom
+                    'min_beds': min_beds,
+                    'max_beds': max_beds,
+                    'min_baths': min_baths,
+                    'max_baths': max_baths,
+                    'min_dom': min_dom,
+                    'max_dom': max_dom
                 }
 
                 # Apply filters
