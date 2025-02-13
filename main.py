@@ -149,34 +149,30 @@ def main():
                 # Sliders for beds, baths, and days on market
                 col1, col2, col3 = st.columns(3)
 
+                # Get valid numeric values for sliders
+                valid_beds = sorted([int(x) for x in expired_unlisted['Bedrooms'].dropna().unique() if x > 0])
+                valid_baths = sorted([int(x) for x in expired_unlisted['Bathrooms'].dropna().unique() if x > 0])
+                valid_dom = sorted([int(x) for x in expired_unlisted['Days on Market'].dropna().unique() if x >= 0])
+
                 with col1:
                     min_beds, max_beds = st.select_slider(
                         "Bedrooms Range",
-                        options=sorted(expired_unlisted['Bedrooms'].unique()),
-                        value=(
-                            int(expired_unlisted['Bedrooms'].min()),
-                            int(expired_unlisted['Bedrooms'].max())
-                        )
+                        options=valid_beds,
+                        value=(min(valid_beds) if valid_beds else 0, max(valid_beds) if valid_beds else 0)
                     )
 
                 with col2:
                     min_baths, max_baths = st.select_slider(
                         "Bathrooms Range",
-                        options=sorted(expired_unlisted['Bathrooms'].unique()),
-                        value=(
-                            int(expired_unlisted['Bathrooms'].min()),
-                            int(expired_unlisted['Bathrooms'].max())
-                        )
+                        options=valid_baths,
+                        value=(min(valid_baths) if valid_baths else 0, max(valid_baths) if valid_baths else 0)
                     )
 
                 with col3:
                     min_dom, max_dom = st.select_slider(
                         "Days on Market Range",
-                        options=sorted(expired_unlisted['Days on Market'].unique()),
-                        value=(
-                            0,
-                            int(expired_unlisted['Days on Market'].max())
-                        )
+                        options=valid_dom,
+                        value=(min(valid_dom) if valid_dom else 0, max(valid_dom) if valid_dom else 0)
                     )
 
                 # Create filters dictionary
