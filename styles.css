@@ -39,6 +39,7 @@
     text-align: left;
     font-weight: 600;
     border-bottom: 2px solid #CBD5E0;
+    position: relative;
 }
 
 .dataframe th:not(:first-child):not(:nth-child(2)) {
@@ -47,6 +48,16 @@
 
 .dataframe th:not(:first-child):not(:nth-child(2)):hover {
     background-color: #E2E8F0;
+}
+
+.dataframe th.sorted-asc::after {
+    content: " ↑";
+    color: #2B6CB0;
+}
+
+.dataframe th.sorted-desc::after {
+    content: " ↓";
+    color: #2B6CB0;
 }
 
 .dataframe td {
@@ -58,6 +69,21 @@
     background-color: #F7FAFC;
 }
 
+/* Ensure table takes full width and shows all results */
 div[data-testid="stTable"] {
     font-family: 'Inter', sans-serif;
+    width: 100%;
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+/* Remove any height restrictions on table container */
+.element-container {
+    max-height: none !important;
+}
+
+/* Style the table wrapper to ensure all results are visible */
+.stTable {
+    overflow: visible !important;
+    max-height: none !important;
 }

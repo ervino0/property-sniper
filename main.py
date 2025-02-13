@@ -20,7 +20,7 @@ st.set_page_config(
 with open('styles.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
-# Add custom JavaScript for column filtering
+# Add custom JavaScript for column sorting
 st.markdown("""
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -28,21 +28,45 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!table) return;
 
     const headers = table.querySelectorAll('th');
+    let sortDirections = {};
+
     headers.forEach((header, index) => {
         if (index < 2) return; // Skip MLS Link and Address columns
 
         header.style.cursor = 'pointer';
+        sortDirections[index] = 'asc';
+
         header.addEventListener('click', () => {
             const rows = Array.from(table.querySelectorAll('tr')).slice(1);
-            const values = new Set();
+            const direction = sortDirections[index];
 
-            rows.forEach(row => {
-                const cell = row.cells[index];
-                if (cell) values.add(cell.textContent.trim());
+            rows.sort((a, b) => {
+                const aValue = a.cells[index].textContent.trim();
+                const bValue = b.cells[index].textContent.trim();
+
+                // Handle numeric values
+                if (!isNaN(aValue) && !isNaN(bValue)) {
+                    return direction === 'asc' 
+                        ? parseFloat(aValue) - parseFloat(bValue)
+                        : parseFloat(bValue) - parseFloat(aValue);
+                }
+
+                // Handle text values
+                return direction === 'asc'
+                    ? aValue.localeCompare(bValue)
+                    : bValue.localeCompare(aValue);
             });
 
-            const uniqueValues = Array.from(values).sort();
-            console.log(`Unique values for ${header.textContent}:`, uniqueValues);
+            // Update sort direction for next click
+            sortDirections[index] = direction === 'asc' ? 'desc' : 'asc';
+
+            // Remove old rows and append sorted rows
+            rows.forEach(row => row.parentNode.removeChild(row));
+            rows.forEach(row => table.appendChild(row));
+
+            // Update header indicators
+            headers.forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
+            header.classList.add(direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
         });
     });
 });
