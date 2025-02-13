@@ -30,17 +30,17 @@ def main():
 
     # File upload section
     col1, col2, col3 = st.columns(3)
-
+    
     with col1:
         st.markdown("<div class='upload-area'>", unsafe_allow_html=True)
         off_market_file = st.file_uploader("Upload Off-Market Listings", type=['csv'])
         st.markdown("</div>", unsafe_allow_html=True)
-
+    
     with col2:
         st.markdown("<div class='upload-area'>", unsafe_allow_html=True)
         sold_file = st.file_uploader("Upload Sold Listings", type=['csv'])
         st.markdown("</div>", unsafe_allow_html=True)
-
+    
     with col3:
         st.markdown("<div class='upload-area'>", unsafe_allow_html=True)
         for_sale_file = st.file_uploader("Upload For-Sale Listings", type=['csv'])
@@ -53,15 +53,15 @@ def main():
                 off_market_df = load_and_clean_data(off_market_file)
                 sold_df = load_and_clean_data(sold_file)
                 for_sale_df = load_and_clean_data(for_sale_file)
-
+                
                 # Find expired unlisted properties
                 expired_unlisted = find_expired_unlisted_properties(
                     off_market_df, sold_df, for_sale_df
                 )
-
+                
                 # Prepare data for display
                 display_df = prepare_display_data(expired_unlisted)
-
+                
                 # Display results
                 st.markdown("### Analysis Results")
                 st.markdown(f"""
@@ -70,7 +70,7 @@ def main():
                     Found {len(display_df)} expired properties not currently listed or sold
                 </div>
                 """, unsafe_allow_html=True)
-
+                
                 # Add filters
                 st.markdown("### Filters")
                 col1, col2 = st.columns(2)
@@ -86,28 +86,20 @@ def main():
                         value=int(expired_unlisted['List Price'].max()),
                         step=50000
                     )
-
+                
                 # Apply filters
                 filtered_df = display_df[
                     (expired_unlisted['List Price'] >= min_price) &
                     (expired_unlisted['List Price'] <= max_price)
                 ]
-
+                
                 # Display results
                 st.dataframe(
                     filtered_df,
                     use_container_width=True,
-                    height=400,
-                    hide_index=True,
-                    column_config={
-                        "MLS": st.column_config.Column(
-                            "MLS",
-                            width="medium",
-                            help="Click MLS number to view on Zealty.ca"
-                        )
-                    }
+                    height=400
                 )
-
+                
                 # Export functionality
                 if not filtered_df.empty:
                     csv = export_to_csv(filtered_df)
@@ -115,10 +107,10 @@ def main():
                     href = f'<a href="data:file/csv;base64,{b64}" download="expired_listings.csv" \
                         class="stButton">Download Results</a>'
                     st.markdown(href, unsafe_allow_html=True)
-
+                
         except Exception as e:
             st.error(f"Error processing files: {str(e)}")
-
+    
     else:
         st.info("Please upload all three CSV files to begin analysis.")
 
