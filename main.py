@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import base64
+from st_aggrid import AgGrid, GridOptionsBuilder
+from st_aggrid.grid_options_builder import GridOptionsBuilder
 from utils import (
     load_and_clean_data,
     find_expired_unlisted_properties,
@@ -134,37 +136,52 @@ def main():
                 # Apply filters
                 filtered_df = apply_filters(display_df, expired_unlisted, filters)
 
-                # Convert MLS numbers to markdown links
-                display_df_clean = filtered_df.copy()
-                display_df_clean['MLS'] = display_df_clean.apply(
-                    lambda row: f"[{row['MLS']}]({row['Zealty_URL']})", 
-                    axis=1
+                # Configure AgGrid
+                gb = GridOptionsBuilder.from_dataframe(filtered_df)
+                gb.configure_default_column(
+                    sorteable=True,
+                    filterable=True,
+                    resizable=True
                 )
-                display_df_clean = display_df_clean.drop('Zealty_URL', axis=1)
 
-                # Display the sortable table using Streamlit's native dataframe
-                st.dataframe(
-                    display_df_clean,
-                    use_container_width=True,
-                    hide_index=True,
-                    column_config={
-                        "MLS": st.column_config.Column(
-                            "MLS Number",
-                            help="Click to view on Zealty",
-                            width="medium"
-                        ),
-                        "List Price": st.column_config.NumberColumn(
-                            "List Price",
-                            format="$%d"
-                        ),
-                        "Days on Market": st.column_config.NumberColumn(
-                            "Days on Market"
-                        ),
-                        "House Size (sqft)": st.column_config.NumberColumn(
-                            "House Size (sqft)",
-                            format="%d"
-                        )
+                # Configure MLS column with custom cell renderer
+                gb.configure_column(
+                    "MLS",
+                    cellRenderer="""
+                    function(params) {
+                        return '<a href="' + params.data.Zealty_URL + '" target="_blank">' + params.value + '</a>'
                     }
+                    """,
+                    cellRendererParams={
+                        'target': '_blank'
+                    }
+                )
+
+                # Configure numeric columns
+                gb.configure_column(
+                    "List Price",
+                    type=["numericColumn", "numberColumnFilter"],
+                    valueFormatter="'$' + Number(value).toLocaleString()"
+                )
+                gb.configure_column(
+                    "House Size (sqft)",
+                    type=["numericColumn", "numberColumnFilter"],
+                    valueFormatter="Number(value).toLocaleString()"
+                )
+                gb.configure_column(
+                    "Days on Market",
+                    type=["numericColumn", "numberColumnFilter"]
+                )
+
+                grid_options = gb.build()
+
+                # Display the AgGrid table
+                ag_grid = AgGrid(
+                    filtered_df,
+                    gridOptions=grid_options,
+                    update_mode='value_changed',
+                    allow_unsafe_jscode=True,
+                    theme='alpine'
                 )
 
                 # Export functionality
