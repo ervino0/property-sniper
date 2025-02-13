@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import base64
-from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 from utils import (
     load_and_clean_data,
     find_expired_unlisted_properties,
@@ -19,32 +18,6 @@ st.set_page_config(
 # Load custom CSS
 with open('styles.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-
-def create_grid_options(df):
-    """Configure grid options for AgGrid."""
-    gb = GridOptionsBuilder.from_dataframe(df)
-    gb.configure_default_column(
-        sortable=True,
-        filterable=True,
-        resizable=True
-    )
-
-    # Configure HTML renderer for MLS Link column
-    gb.configure_column(
-        "MLS Link",
-        headerName="MLS#",
-        sortable=False,
-        cellRenderer=JsCode("""
-        function(params) {
-            if (params.value) {
-                return params.value;
-            }
-            return '';
-        }
-        """)
-    )
-
-    return gb.build()
 
 def main():
     st.title("Real Estate Listing Analysis")
@@ -100,8 +73,7 @@ def main():
 
                 # Add filters
                 st.markdown("### Filters")
-                col1, col2, col3 = st.columns(3)
-
+                col1, col2 = st.columns(2)
                 with col1:
                     min_price = st.number_input(
                         "Minimum Price",
@@ -114,37 +86,21 @@ def main():
                         value=int(expired_unlisted['List Price'].max()),
                         step=50000
                     )
-                with col3:
-                    bedrooms = st.selectbox(
-                        "Minimum Bedrooms",
-                        options=[0] + sorted(expired_unlisted['Bedrooms'].unique().tolist()),
-                        index=0
-                    )
 
                 # Apply filters
                 filtered_df = display_df[
                     (expired_unlisted['List Price'] >= min_price) &
-                    (expired_unlisted['List Price'] <= max_price) &
-                    (expired_unlisted['Bedrooms'] >= bedrooms)
+                    (expired_unlisted['List Price'] <= max_price)
                 ]
 
-                # Configure and display interactive grid
-                if not filtered_df.empty:
-                    grid_options = create_grid_options(filtered_df)
-                    AgGrid(
-                        filtered_df,
-                        gridOptions=grid_options,
-                        allow_unsafe_jscode=True,
-                        custom_css={
-                            "#gridToolBar": {"padding": "0.5rem"},
-                            ".ag-header-cell": {"background-color": "#EDF2F7"},
-                            ".ag-row-even": {"background-color": "#F7FAFC"},
-                            ".ag-row-odd": {"background-color": "#FFFFFF"}
-                        },
-                        height=400
-                    )
+                # Display results with HTML support
+                st.write(
+                    filtered_df.to_html(escape=False, index=False),
+                    unsafe_allow_html=True
+                )
 
-                    # Export functionality
+                # Export functionality
+                if not filtered_df.empty:
                     csv = export_to_csv(filtered_df)
                     b64 = base64.b64encode(csv.encode()).decode()
                     href = f'<a href="data:file/csv;base64,{b64}" download="expired_listings.csv" \
