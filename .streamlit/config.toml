@@ -1,8 +1,8 @@
 [server]
 headless = true
-enableCORS = false
+enableCORS = true
 address = "0.0.0.0"
-port = 8501
+port = 5000
 
 [theme]
 primaryColor = "#2B6CB0"
@@ -10,6 +10,3 @@ backgroundColor = "#F7FAFC"
 secondaryBackgroundColor = "#EDF2F7"
 textColor = "#2D3748"
 font = "sans serif"
-
-[logger]
-level = "info"

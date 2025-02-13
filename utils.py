@@ -65,12 +65,15 @@ def prepare_display_data(df):
         'List Price', 'Days on Market', 'Year Built', 'Listing Cancel Date'
     ]
 
-    display_df = df[display_columns].copy()
+    # Ensure all columns exist in dataframe
+    existing_columns = [col for col in display_columns if col in df.columns]
+    display_df = df[existing_columns].copy()
 
     # Format currency
-    display_df['List Price'] = display_df['List Price'].apply(
-        lambda x: f"${x:,.0f}" if pd.notnull(x) else ''
-    )
+    if 'List Price' in display_df.columns:
+        display_df['List Price'] = display_df['List Price'].apply(
+            lambda x: f"${x:,.0f}" if pd.notnull(x) else ''
+        )
 
     return display_df
 
@@ -94,6 +97,10 @@ def apply_filters(df, raw_df, filters):
         mask &= (raw_df['Days on Market'] >= filters['min_dom'])
     if filters.get('max_dom'):
         mask &= (raw_df['Days on Market'] <= filters['max_dom'])
+
+    # Add property type filter
+    if filters.get('property_types') and 'Property Type' in raw_df.columns:
+        mask &= raw_df['Property Type'].isin(filters['property_types'])
 
     return df[mask]
 
