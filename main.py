@@ -87,7 +87,7 @@ def main():
                 with col2:
                     max_price = st.number_input(
                         "Maximum Price",
-                        value=int(expired_unlisted['List Price'].max()),
+                        value=int(expired_unlisted['List Price'].fillna(0).max()),
                         step=50000
                     )
 
@@ -104,28 +104,37 @@ def main():
                 col1, col2, col3 = st.columns(3)
 
                 with col1:
-                    valid_beds = sorted([int(x) for x in expired_unlisted['Bedrooms'].dropna().unique() if x > 0])
-                    min_beds, max_beds = st.select_slider(
-                        "Bedrooms Range",
-                        options=valid_beds,
-                        value=(min(valid_beds) if valid_beds else 0, max(valid_beds) if valid_beds else 0)
-                    )
+                    valid_beds = sorted([int(x) for x in expired_unlisted['Bedrooms'].dropna().unique() if pd.notna(x) and x > 0])
+                    if valid_beds:
+                        min_beds, max_beds = st.select_slider(
+                            "Bedrooms Range",
+                            options=valid_beds,
+                            value=(min(valid_beds), max(valid_beds))
+                        )
+                    else:
+                        min_beds, max_beds = 0, 0
 
                 with col2:
-                    valid_baths = sorted([int(x) for x in expired_unlisted['Bathrooms'].dropna().unique() if x > 0])
-                    min_baths, max_baths = st.select_slider(
-                        "Bathrooms Range",
-                        options=valid_baths,
-                        value=(min(valid_baths) if valid_baths else 0, max(valid_baths) if valid_baths else 0)
-                    )
+                    valid_baths = sorted([int(x) for x in expired_unlisted['Bathrooms'].dropna().unique() if pd.notna(x) and x > 0])
+                    if valid_baths:
+                        min_baths, max_baths = st.select_slider(
+                            "Bathrooms Range",
+                            options=valid_baths,
+                            value=(min(valid_baths), max(valid_baths))
+                        )
+                    else:
+                        min_baths, max_baths = 0, 0
 
                 with col3:
-                    valid_dom = sorted([int(x) for x in expired_unlisted['Days on Market'].dropna().unique() if x >= 0])
-                    min_dom, max_dom = st.select_slider(
-                        "Days on Market Range",
-                        options=valid_dom,
-                        value=(min(valid_dom) if valid_dom else 0, max(valid_dom) if valid_dom else 0)
-                    )
+                    valid_dom = sorted([int(x) for x in expired_unlisted['Days on Market'].dropna().unique() if pd.notna(x) and x >= 0])
+                    if valid_dom:
+                        min_dom, max_dom = st.select_slider(
+                            "Days on Market Range",
+                            options=valid_dom,
+                            value=(min(valid_dom), max(valid_dom))
+                        )
+                    else:
+                        min_dom, max_dom = 0, 0
 
                 # Create filters dictionary
                 filters = {

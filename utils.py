@@ -93,21 +93,21 @@ def apply_filters(df, raw_df, filters):
     mask = pd.Series(True, index=df.index)
 
     if filters.get('min_price'):
-        mask &= (raw_df['List Price'] >= filters['min_price'])
+        mask &= (raw_df['List Price'].fillna(0) >= filters['min_price'])
     if filters.get('max_price'):
-        mask &= (raw_df['List Price'] <= filters['max_price'])
+        mask &= (raw_df['List Price'].fillna(0) <= filters['max_price'])
     if filters.get('min_beds'):
-        mask &= (raw_df['Bedrooms'] >= filters['min_beds'])
+        mask &= (raw_df['Bedrooms'].fillna(0) >= filters['min_beds'])
     if filters.get('max_beds'):
-        mask &= (raw_df['Bedrooms'] <= filters['max_beds'])
+        mask &= (raw_df['Bedrooms'].fillna(0) <= filters['max_beds'])
     if filters.get('min_baths'):
-        mask &= (raw_df['Bathrooms'] >= filters['min_baths'])
+        mask &= (raw_df['Bathrooms'].fillna(0) >= filters['min_baths'])
     if filters.get('max_baths'):
-        mask &= (raw_df['Bathrooms'] <= filters['max_baths'])
+        mask &= (raw_df['Bathrooms'].fillna(0) <= filters['max_baths'])
     if filters.get('min_dom'):
-        mask &= (raw_df['Days on Market'] >= filters['min_dom'])
+        mask &= (raw_df['Days on Market'].fillna(0) >= filters['min_dom'])
     if filters.get('max_dom'):
-        mask &= (raw_df['Days on Market'] <= filters['max_dom'])
+        mask &= (raw_df['Days on Market'].fillna(0) <= filters['max_dom'])
 
     # Add property type filter
     if filters.get('property_types') and 'Property Type' in raw_df.columns:
