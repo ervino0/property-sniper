@@ -134,8 +134,13 @@ def main():
                 # Apply filters
                 filtered_df = apply_filters(display_df, expired_unlisted, filters)
 
-                # Remove the Zealty URL column for display
-                display_df_clean = filtered_df.drop('Zealty_URL', axis=1)
+                # Convert MLS numbers to markdown links
+                display_df_clean = filtered_df.copy()
+                display_df_clean['MLS'] = display_df_clean.apply(
+                    lambda row: f"[{row['MLS']}]({row['Zealty_URL']})", 
+                    axis=1
+                )
+                display_df_clean = display_df_clean.drop('Zealty_URL', axis=1)
 
                 # Display the sortable table using Streamlit's native dataframe
                 st.dataframe(
@@ -143,6 +148,11 @@ def main():
                     use_container_width=True,
                     hide_index=True,
                     column_config={
+                        "MLS": st.column_config.Column(
+                            "MLS Number",
+                            help="Click to view on Zealty",
+                            width="medium"
+                        ),
                         "List Price": st.column_config.NumberColumn(
                             "List Price",
                             format="$%d"
