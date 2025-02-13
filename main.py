@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import base64
+from st_aggrid import AgGrid, GridOptionsBuilder
 from utils import (
     load_and_clean_data,
     find_expired_unlisted_properties,
@@ -19,74 +20,6 @@ st.set_page_config(
 # Load custom CSS
 with open('styles.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-
-# Add custom JavaScript for column sorting
-st.markdown("""
-<script>
-function initializeTableSorting() {
-    const table = document.querySelector('table');
-    if (!table) {
-        // If table is not ready, try again in 100ms
-        setTimeout(initializeTableSorting, 100);
-        return;
-    }
-
-    const headers = table.querySelectorAll('th');
-    let sortDirections = {};
-
-    headers.forEach((header, index) => {
-        if (index < 2) return; // Skip MLS Link and Address columns
-
-        header.style.cursor = 'pointer';
-        sortDirections[index] = 'asc';
-
-        header.addEventListener('click', () => {
-            const rows = Array.from(table.querySelectorAll('tr')).slice(1);
-            const direction = sortDirections[index];
-
-            rows.sort((a, b) => {
-                const aValue = a.cells[index].textContent.trim();
-                const bValue = b.cells[index].textContent.trim();
-
-                // Handle numeric values (including currency)
-                const aNum = parseFloat(aValue.replace(/[^0-9.-]+/g, ''));
-                const bNum = parseFloat(bValue.replace(/[^0-9.-]+/g, ''));
-
-                if (!isNaN(aNum) && !isNaN(bNum)) {
-                    return direction === 'asc' 
-                        ? aNum - bNum
-                        : bNum - aNum;
-                }
-
-                // Handle text values
-                return direction === 'asc'
-                    ? aValue.localeCompare(bValue)
-                    : bValue.localeCompare(aValue);
-            });
-
-            // Update sort direction for next click
-            sortDirections[index] = direction === 'asc' ? 'desc' : 'asc';
-
-            // Remove old rows and append sorted rows
-            const tbody = table.querySelector('tbody') || table;
-            rows.forEach(row => tbody.appendChild(row));
-
-            // Update header indicators
-            headers.forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
-            header.classList.add(direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
-        });
-    });
-}
-
-// Initialize sorting when DOM is ready
-document.addEventListener('DOMContentLoaded', initializeTableSorting);
-
-// Also try to initialize when Streamlit re-renders
-new MutationObserver(() => {
-    initializeTableSorting();
-}).observe(document.body, { childList: true, subtree: true });
-</script>
-""", unsafe_allow_html=True)
 
 def main():
     st.title("Real Estate Listing Analysis")
@@ -143,7 +76,7 @@ def main():
                 # Add filters
                 st.markdown("### Filters")
 
-                # Price filters (keep as number inputs)
+                # Price filters
                 col1, col2 = st.columns(2)
                 with col1:
                     min_price = st.number_input(
@@ -202,10 +135,21 @@ def main():
                 # Apply filters
                 filtered_df = apply_filters(display_df, expired_unlisted, filters)
 
-                # Display results with HTML support
-                st.write(
-                    filtered_df.to_html(escape=False, index=False),
-                    unsafe_allow_html=True
+                # Configure AgGrid
+                gb = GridOptionsBuilder.from_dataframe(filtered_df)
+                gb.configure_default_column(sortable=True, filterable=True)
+                gb.configure_column('MLS Link', sortable=False, cellRenderer='html')
+
+                grid_options = gb.build()
+
+                # Display results with AgGrid
+                ag_grid = AgGrid(
+                    filtered_df,
+                    gridOptions=grid_options,
+                    allow_unsafe_jscode=True,
+                    theme='streamlit',
+                    fit_columns_on_grid_load=True,
+                    height=400
                 )
 
                 # Export functionality
