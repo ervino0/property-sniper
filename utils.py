@@ -8,9 +8,20 @@ def load_and_clean_data(file):
         # Clean address column by removing extra whitespace and standardizing format
         df['Address'] = df['Address'].str.strip()
 
-        # Format Year Built as integer
+        # Format Year Built as integer, handling NaN values
         if 'Year Built' in df.columns:
-            df['Year Built'] = df['Year Built'].fillna(0).astype(int)
+            df['Year Built'] = pd.to_numeric(df['Year Built'], errors='coerce')
+            df['Year Built'] = df['Year Built'].fillna(0).astype('Int64')  # Use Int64 to handle NaN
+
+        # Convert numeric columns, handling NaN values
+        numeric_columns = ['List Price', 'House Size (sqft)', 'Lot Size (sqft)', 
+                         'Bedrooms', 'Bathrooms', 'Days on Market']
+
+        for col in numeric_columns:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+                if col in ['Bedrooms', 'Bathrooms', 'Days on Market']:
+                    df[col] = df[col].fillna(0).astype('Int64')
 
         return df
     except Exception as e:
@@ -69,9 +80,8 @@ def prepare_display_data(df):
     existing_columns = [col for col in display_columns if col in df.columns]
     display_df = df[existing_columns].copy()
 
-    # Format currency
+    # Format currency for non-null values
     if 'List Price' in display_df.columns:
-        # Fix: Use string formatting without f-string
         display_df['List Price'] = display_df['List Price'].apply(
             lambda x: '${:,.0f}'.format(x) if pd.notnull(x) else ''
         )
