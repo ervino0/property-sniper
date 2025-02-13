@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import base64
-from st_aggrid import AgGrid, GridOptionsBuilder
+from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 from utils import (
     load_and_clean_data,
     find_expired_unlisted_properties,
@@ -28,7 +28,19 @@ def create_grid_options(df):
         filterable=True,
         resizable=True
     )
-    gb.configure_column("MLS Link", sortable=False)  # Don't sort HTML links
+
+    # Configure HTML renderer for MLS Link column
+    gb.configure_column(
+        "MLS Link",
+        headerName="MLS#",
+        sortable=False,
+        cellRenderer=JsCode("""
+        function(params) {
+            return params.value;
+        }
+        """)
+    )
+
     return gb.build()
 
 def main():
