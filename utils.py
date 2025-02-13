@@ -61,7 +61,7 @@ def prepare_display_data(df):
     df['MLS Link'] = df.apply(generate_zealty_link, axis=1)
 
     display_columns = [
-        'MLS Link', 'Address', 'Bedrooms', 'Bathrooms', 'House Size (sqft)', 
+        'MLS Link', 'Address', 'Property Type', 'Bedrooms', 'Bathrooms', 'House Size (sqft)', 
         'List Price', 'Days on Market', 'Year Built', 'Listing Cancel Date'
     ]
 
