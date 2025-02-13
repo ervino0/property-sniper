@@ -16,7 +16,7 @@ from utils import (
 
 # Page configuration
 st.set_page_config(
-    page_title="Real Estate Listing Analysis",
+    page_title="Zealty Property Sniper",
     page_icon="🏠",
     layout="wide"
 )
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
 """, unsafe_allow_html=True)
 
 def main():
-    st.title("Real Estate Listing Analysis")
+    st.title("Zealty Property Sniper")
     st.markdown("""
     <div style='background-color: #EDF2F7; padding: 1rem; border-radius: 4px; margin-bottom: 2rem;'>
         Upload your real estate listing files to identify expired properties that haven't been sold 
