@@ -159,11 +159,27 @@ def main():
                     gb = GridOptionsBuilder.from_dataframe(filtered_df)
                     gb.configure_default_column(sorteable=True, filterable=True)
 
-                    # Configure HTML renderer for MLS Link column
+                    # Configure HTML renderer for MLS Link column with React-safe HTML rendering
                     html_renderer = JsCode("""
-                    function(params) {
-                        return params.value;
+                    class HTMLRenderer {
+                        init(params) {
+                            this.eGui = document.createElement('div');
+                            this.eGui.innerHTML = params.value;
+                            this.eGui.style.cursor = 'pointer';
+                            this.eGui.addEventListener('click', () => {
+                                const link = this.eGui.querySelector('a');
+                                if (link) {
+                                    window.open(link.href, '_blank');
+                                }
+                            });
+                        }
+
+                        getGui() {
+                            return this.eGui;
+                        }
                     }
+
+                    return HTMLRenderer;
                     """)
 
                     gb.configure_column(
