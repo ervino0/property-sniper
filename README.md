@@ -1,4 +1,4 @@
-# Property Sniper
+# Zealty Property Sniper
 
 ## About
 The Property Sniper allows you to filter out cancelled/terminated listings from zealty.ca so you can find diamond in the rough properties.
