@@ -27,5 +27,8 @@ The Property Sniper allows you to filter out cancelled/terminated listings from 
    
    The tool will compare all three categories to identify and display potential opportunities in the unsold listings.
 
+## Tips
+For the most accurate results, ensure that the sold and expired date timeline is the same time period (recommended last 90 days).
+
 ## Live Demo
 Try the tool here: [Property Sniper on Render](https://property-sniper.onrender.com)
